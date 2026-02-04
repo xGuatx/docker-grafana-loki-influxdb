@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+<dashboard version="1.1" theme="light">
+  <label>WinSRV – Offensive Activity Overview</label>
+  <description>Surveille les activités offensives détectables via les champs standard Windows Security (index=winsrv).</description>
+  <row>
+    <panel>
+      <title>Volume des principaux EventCode</title>
+      <chart>
+        <search>
+          <query>index=winsrv EventCode IN (4624,4625,4672,4648,4768,4769,4799,4634) | timechart span=5m count by EventCode</query>
+        </search>
+        <option name="charting.chart">area</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Privilèges spéciaux (4672)</title>
+      <table>
+        <search>
+          <query>index=winsrv EventCode=4672 | stats count by aAccount_Name, aComputerName, Privileges | sort - count</query>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <title>Authentification explicite (4648)</title>
+      <table>
+        <search>
+          <query>index=winsrv EventCode=4648 | stats count by aAccount_Name, Target_Server_Name, Additional_Information | sort - count</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Connexions réussies (4624)</title>
+      <table>
+        <search>
+          <query>index=winsrv EventCode=4624 | eval LogonType=coalesce(Logon_Type,"?") | stats count by aAccount_Name, LogonType, aComputerName | sort - count</query>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <title>Connexions échouées (4625)</title>
+      <table>
+        <search>
+          <query>index=winsrv EventCode=4625 | stats count by aAccount_Name, aComputerName, Failure_Code | sort - count</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>TGT requests (4768)</title>
+      <table>
+        <search>
+          <query>index=winsrv EventCode=4768 | stats count by aAccount_Name, Ticket_Encryption_Type, Pre_Authentication_Type | sort - count</query>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <title>Service tickets (4769)</title>
+      <table>
+        <search>
+          <query>index=winsrv EventCode=4769 | stats count by aAccount_Name, Service_Name, Client_Address | sort - count</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Processus suspects (procdump/lsass)</title>
+      <table>
+        <search>
+          <query>index=winsrv Process_Name IN ("*procdump.exe*","*p.exe*","*lsass.exe*") | stats count by Process_Name, aAccount_Name, aComputerName</query>
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <title>Enumerations de groupes (4799)</title>
+      <table>
+        <search>
+          <query>index=winsrv EventCode=4799 | stats count by Group_Name, aAccount_Name, aComputerName | sort - count</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Top Source Network Address</title>
+      <table>
+        <search>
+          <query>index=winsrv Source_Network_Address!="-" | top limit=20 Source_Network_Address</query>
+        </search>
+      </table>
+    </panel>
+  </row>
+</dashboard>
